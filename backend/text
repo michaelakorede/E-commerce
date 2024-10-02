@@ -1,4 +1,4 @@
-# You also need a public folder where the frontend files (index.html, styles.css, script.js) will be located. Create the products table in your MySQL database:
+# You y also need a public folder where the frontend files (index.html, styles.css, script.js) will be located. Create the products table in your MySQL database:
 
 CREATE TABLE products (
     id INT AUTO_INCREMENT PRIMARY KEY,
