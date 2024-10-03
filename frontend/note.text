@@ -1,0 +1,217 @@
+To deploy an e-commerce web application on Azure Virtual Machines (VMs), we will use a sample code written in Node.js with Express for the backend and HTML/CSS for the frontend. This code will connect to a MySQL database hosted in the backend subnet.
+
+Sample E-commerce Application Code
+Here’s a basic structure of an e-commerce application:
+
+Frontend: HTML, CSS, and JavaScript files for the user interface.
+Backend: Node.js with Express to handle API calls and communication with the database.
+Database: MySQL to store product and user information.
+
+Backend Code (Node.js with Express)
+First, install the necessary packages:
+#npm init -y
+#npm install express mysql dotenv
+
+A. Create the products table in your MySQL database:
+#CREATE TABLE products (
+    #id INT AUTO_INCREMENT PRIMARY KEY,
+    #name VARCHAR(255),
+    #description TEXT,
+    #price DECIMAL(10, 2)
+);
+
+#INSERT INTO products (name, description, price)
+#VALUES ('Product 1', 'Description of Product 1', 19.99),
+       #('Product 2', 'Description of Product 2', 29.99),
+       #('Product 3', 'Description of Product 3', 39.99);
+
+
+
+B. Deploy the Application on Azure VMs
+Now that the application is ready, let's deploy it on Azure VMs.
+
+1. Using Azure DevOps for Deployment
+Set up an Azure DevOps Pipeline:
+
+2. Create a new project in Azure DevOps.
+Go to Pipelines and set up a new pipeline.
+Connect your pipeline to your code repository (GitHub, Azure Repos, etc.).
+Define the build pipeline:
+
+Create a azure-pipelines.yml file in your repository:
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '14.x'
+    displayName: 'Install Node.js'
+
+  - script: |
+      npm install
+      npm run build
+    displayName: 'Build Application'
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)'
+      contents: '**'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+
+
+3. Release Pipeline:
+Create a release pipeline that picks up the built artifacts.
+Add a deployment stage that connects to your Azure VM using SSH or Azure VM Agents.
+In the release pipeline, run the necessary commands to install Node.js, copy the files, and start the application.
+Trigger the pipeline:
+
+4. Commit the code to the main branch, and the pipeline should automatically trigger, build, and deploy the application.
+
+
+Manual Deployment via SSH
+1. SSH into your Frontend VM:
+Open the Azure Portal, go to Virtual Machines, select the frontend VM, and click Connect to SSH into the machine.
+
+2. Install Node.js: Run the following commands to install Node.js:
+sudo apt update
+sudo apt install -y nodejs npm
+
+3.Deploy the Code:
+Use SCP or Git to transfer your application code to the VM:
+git clone https://github.com/your-repo/ecommerce-app.git
+cd ecommerce-app
+npm install
+
+4.Set up Environment Variables:
+Create a .env file on the VM and add the necessary database credentials:
+nano .env
+
+Add the following:
+DB_HOST=your-database-host
+DB_USER=your-database-username
+DB_PASSWORD=your-database-password
+DB_NAME=your-database-name
+
+5.Run the Application:
+node server.js
+
+6.Open Port 3000:
+Ensure that port 3000 is open in the Network Security Group (NSG) rules for the frontend VM.
+
+7. Access the Application:
+Navigate to the public IP of your VM in a browser to see the deployed application.
+
+
+Database Connection
+In the backend server.js, the connection string is defined using environment variables. Here’s an example:
+const db = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+});
+Make sure that:
+
+To create a database connection in the server.js file for your backend (using Node.js and MySQL), you'll need to follow these steps:
+
+Prerequisites
+Node.js and npm should be installed on your system. You can download and install Node.js from here.
+MySQL database is running either locally or remotely.
+MySQL Client (like MySQL Workbench) is available for database management (optional).
+
+Step-by-Step Instructions to Create a Database Connection
+1. Install MySQL Package
+First, you need to install the mysql Node.js package to communicate with the MySQL database.
+
+1. Initialize Node.js Project: Open a terminal and navigate to your project folder, then initialize a new Node.js project:
+npm init -y
+2. Install MySQL Package: Install the MySQL driver for Node.js:
+npm install mysql
+
+2. Set Up Environment Variables (.env File)
+To securely store your database credentials (instead of hardcoding them into the application), you can use a .env file.
+1. Create a .env file in your project root directory (in the same directory as server.js):
+DB_HOST=localhost         # or the IP address of your MySQL server
+DB_USER=root              # your MySQL username
+DB_PASSWORD=yourpassword  # your MySQL password
+DB_NAME=mydatabase        # the name of your MySQL database
+
+Note: Do not commit the .env file to your version control (e.g., GitHub). You can add the .env file to your .gitignore.
+
+
+3. Update server.js to Use Environment Variables and Create a Database Connection
+Install dotenv (optional, but recommended): To use environment variables from the .env file, install the dotenv package:
+npm install dotenv
+
+4. Run the Application
+Make sure your MySQL server is running and that you have set the correct credentials in your .env file.
+Run the server.js file using Node.js:
+node server.js
+
+If the connection is successful, you should see the message: "Connected to the database".
+
+5. Verify the Connection
+1. Test the Route: Open a browser and go to http://localhost:3000 (or the port you've defined). You should see the "Hello World!" message indicating the server is running.
+2. Test the Database Connection: You can create routes that fetch or store data from the MySQL database. For example, to get data from a products table:
+
+When you visit http://localhost:3000/products, you should see a JSON array of the products from your database (if any are present).
+
+//Explanation of the Code
+Import Required Packages:
+
+mysql: Used to create the database connection.
+dotenv: Used to load environment variables from the .env file.
+Create the Connection:
+
+mysql.createConnection() establishes a connection to the MySQL database, with configuration details passed using the environment variables DB_HOST, DB_USER, DB_PASSWORD, and DB_NAME.
+Connect to the Database:
+
+db.connect() attempts to connect to the MySQL database and logs the connection status. If it fails, an error message is printed; otherwise, a success message is shown.
+Test Query:
+
+The db.query() function executes a sample query (SELECT 1 + 1 AS solution) to test the connection.
+5. Run the Application
+Once you have created your server.js file and configured the .env file, you can run the server using:
+node server.js
+You should see a message like:
+Connected to the database as ID: <some_id>
+The solution is: 2
+The MySQL database is running in the Backend Subnet.
+The Frontend VMs have permission to access the backend via NSG rules on port 1433 (or whichever port the database is listening on).
+
+
+(a) host: process.env.DB_HOST
+Purpose: The host represents the location of the MySQL server. It could be:
+
+localhost: If the MySQL server is running on the same machine as your application.
+An IP address or a domain name: If your MySQL server is hosted remotely.
+Environment Variable: process.env.DB_HOST retrieves the value of DB_HOST from your environment variables. This ensures the server's address isn’t hardcoded in the code.
+
+Example value in .env: DB_HOST=localhost.
+(b) user: process.env.DB_USER
+Purpose: The user is the username that your Node.js application will use to log in to the MySQL database.
+
+Common values include root for local development, or another user you’ve set up in MySQL with specific privileges.
+Environment Variable: process.env.DB_USER retrieves the username from the .env file.
+
+Example value in .env: DB_USER=root.
+(c) password: process.env.DB_PASSWORD
+Purpose: The password is the authentication credential for the specified MySQL user.
+It's used to securely log in to the MySQL database.
+Environment Variable: process.env.DB_PASSWORD retrieves the password from the environment variables, so sensitive information isn’t exposed directly in the code.
+Example value in .env: DB_PASSWORD=yourpassword.
+(d) database: process.env.DB_NAME
+Purpose: The database is the specific database in MySQL where your application will interact.
+This is where tables, queries, and data are stored.
+Environment Variable: process.env.DB_NAME retrieves the name of the database from the environment variables.
+Example value in .env: DB_NAME=mydatabase.
